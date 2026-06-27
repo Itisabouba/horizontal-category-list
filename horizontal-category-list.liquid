@@ -1,0 +1,228 @@
+{{ 'horizontal-category-list.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign section_id = section.id
+  assign autoplay = section.settings.autoplay
+  assign autoplay_speed = section.settings.autoplay_speed | times: 1000
+  assign show_arrows = section.settings.show_arrows
+  assign show_dots = section.settings.show_dots
+  assign show_scrollbar = section.settings.show_scrollbar
+  assign card_style = section.settings.card_style
+  assign card_size_desktop = section.settings.card_size_desktop
+  assign card_size_mobile = section.settings.card_size_mobile
+  assign gap = section.settings.gap
+-%}
+
+<div class="hcl-section hcl-section--{{ section_id }} hcl-style-{{ card_style }}{% if show_scrollbar %} hcl-show-scrollbar{% endif %}"
+  style="
+    --hcl-gap: {{ gap }}px;
+    --hcl-size-desktop: {{ card_size_desktop }}px;
+    --hcl-size-mobile: {{ card_size_mobile }}px;
+    --hcl-bg: {{ section.settings.bg_color }};
+    --hcl-text: {{ section.settings.text_color }};
+    --hcl-accent: {{ section.settings.accent_color }};
+    --hcl-card-bg: {{ section.settings.card_bg_color }};
+    --hcl-radius: {{ section.settings.rect_radius }}px;
+    --hcl-padding-top: {{ section.settings.padding_top }}px;
+    --hcl-padding-bottom: {{ section.settings.padding_bottom }}px;
+    --hcl-border-width: {{ section.settings.border_width }}px;
+    --hcl-border-color: {{ section.settings.border_color }};
+    --hcl-overlay-opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }};
+    --hcl-name-size: {{ section.settings.name_font_size }}px;
+    --hcl-heading-size: {{ section.settings.heading_size }}px;
+    --hcl-heading-color: {{ section.settings.heading_color }};
+    --hcl-heading-weight: {{ section.settings.heading_weight }};
+    --hcl-subheading-size: {{ section.settings.subheading_size }}px;
+    --hcl-subheading-color: {{ section.settings.subheading_color }};
+  "
+  data-hcl-section
+  data-autoplay="{{ autoplay }}"
+  data-autoplay-speed="{{ autoplay_speed }}"
+>
+  <div class="hcl-container">
+
+    {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
+      <div class="hcl-header" style="text-align: {{ section.settings.heading_alignment }};">
+        {%- if section.settings.heading != blank -%}
+          <h2 class="hcl-heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.subheading != blank -%}
+          <p class="hcl-subheading">{{ section.settings.subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="hcl-wrapper">
+
+      {%- if show_arrows -%}
+        <button type="button" class="hcl-arrow hcl-arrow--prev" data-hcl-prev aria-label="Scroll left">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+      {%- endif -%}
+
+      <div class="hcl-track" data-hcl-track tabindex="0" role="region" aria-label="{{ section.settings.heading | default: 'Category list' }}">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'category' -%}
+            {%- assign collection = block.settings.collection -%}
+            {%- if collection != blank -%}
+              <a href="{{ collection.url }}" class="hcl-card" {{ block.shopify_attributes }} data-hcl-card aria-label="{{ block.settings.custom_title | default: collection.title }}">
+
+                <div class="hcl-card-media">
+                  {%- assign card_image = block.settings.custom_image | default: collection.featured_image -%}
+                  {%- if card_image != blank -%}
+                    <img
+                      class="hcl-card-img"
+                      src="{{ card_image | image_url: width: 600 }}"
+                      srcset="{{ card_image | image_url: width: 300 }} 300w, {{ card_image | image_url: width: 600 }} 600w, {{ card_image | image_url: width: 900 }} 900w"
+                      sizes="(max-width: 749px) 40vw, 220px"
+                      alt="{{ card_image.alt | escape | default: collection.title }}"
+                      loading="lazy"
+                      width="{{ card_image.width }}"
+                      height="{{ card_image.height }}"
+                    >
+                  {%- else -%}
+                    <div class="hcl-card-img hcl-card-img--placeholder">{{ 'collection-1' | placeholder_svg_tag: 'hcl-placeholder-svg' }}</div>
+                  {%- endif -%}
+
+                  {%- if card_style == 'rectangle' -%}
+                    <span class="hcl-overlay"></span>
+                    <span class="hcl-rect-content">
+                      <span class="hcl-card-title hcl-card-title--rect">{{ block.settings.custom_title | default: collection.title }}</span>
+                      {%- if section.settings.show_button -%}
+                        <span class="hcl-shop-btn">{{ section.settings.button_text | default: 'Shop now' }}</span>
+                      {%- endif -%}
+                    </span>
+                  {%- endif -%}
+                </div>
+
+                {%- if card_style == 'circle' -%}
+                  <span class="hcl-card-title hcl-card-title--circle">{{ block.settings.custom_title | default: collection.title }}</span>
+                {%- endif -%}
+
+              </a>
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- if section.blocks.size == 0 -%}
+          <div class="hcl-empty-state">
+            {%- if request.design_mode -%}
+              <p>Add categories using the "Add block" button in the section settings.</p>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- if show_arrows -%}
+        <button type="button" class="hcl-arrow hcl-arrow--next" data-hcl-next aria-label="Scroll right">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      {%- endif -%}
+    </div>
+
+    {%- if show_dots -%}
+      <div class="hcl-dots" data-hcl-dots aria-hidden="true"></div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<script src="{{ 'horizontal-category-list.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Horizontal Category List",
+  "tag": "section",
+  "class": "section-horizontal-category-list",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Shop by Category" },
+    {
+      "type": "select",
+      "id": "heading_alignment",
+      "label": "Heading alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    { "type": "range", "id": "heading_size", "label": "Heading font size (px)", "min": 16, "max": 60, "step": 1, "default": 28 },
+    {
+      "type": "select",
+      "id": "heading_weight",
+      "label": "Heading font weight",
+      "options": [
+        { "value": "400", "label": "Default (Regular)" },
+        { "value": "600", "label": "Semi Bold" },
+        { "value": "700", "label": "Bold" }
+      ],
+      "default": "700"
+    },
+    { "type": "color", "id": "heading_color", "label": "Heading color", "default": "#1A1A1A" },
+    { "type": "text", "id": "subheading", "label": "Subheading" },
+    { "type": "range", "id": "subheading_size", "label": "Subheading font size (px)", "min": 12, "max": 32, "step": 1, "default": 16 },
+    { "type": "color", "id": "subheading_color", "label": "Subheading color", "default": "#1A1A1A" },
+    { "type": "header", "content": "Card style" },
+    {
+      "type": "select",
+      "id": "card_style",
+      "label": "Card shape",
+      "options": [
+        { "value": "circle", "label": "Circle" },
+        { "value": "rectangle", "label": "Rectangle (with overlay)" }
+      ],
+      "default": "circle"
+    },
+    { "type": "checkbox", "id": "show_button", "label": "Show 'Shop now' button (rectangle style only)", "default": true },
+    { "type": "text", "id": "button_text", "label": "Button text", "default": "Shop now" },
+    { "type": "range", "id": "name_font_size", "label": "Category name font size (px)", "min": 11, "max": 28, "step": 1, "default": 15 },
+    { "type": "header", "content": "Scrolling behavior" },
+    { "type": "checkbox", "id": "autoplay", "label": "Enable auto-scroll", "default": true },
+    { "type": "range", "id": "autoplay_speed", "label": "Auto-scroll speed (seconds per card)", "min": 2, "max": 10, "step": 1, "default": 4 },
+    { "type": "checkbox", "id": "show_arrows", "label": "Show navigation arrows", "default": true },
+    { "type": "checkbox", "id": "show_dots", "label": "Show scroll progress dots", "default": true },
+    { "type": "checkbox", "id": "show_scrollbar", "label": "Show scrollbar", "default": false },
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "card_size_desktop", "label": "Card size (desktop, px)", "min": 120, "max": 320, "step": 10, "default": 180 },
+    { "type": "range", "id": "card_size_mobile", "label": "Card size (mobile, px)", "min": 90, "max": 220, "step": 10, "default": 130 },
+    { "type": "range", "id": "gap", "label": "Space between cards (px)", "min": 8, "max": 48, "step": 2, "default": 20 },
+    { "type": "range", "id": "rect_radius", "label": "Rectangle corner radius (px)", "min": 0, "max": 40, "step": 1, "default": 16 },
+    { "type": "range", "id": "border_width", "label": "Card border width (px)", "min": 0, "max": 6, "step": 1, "default": 0 },
+    { "type": "color", "id": "border_color", "label": "Card border color", "default": "#E5E5E5" },
+    { "type": "range", "id": "overlay_opacity", "label": "Rectangle overlay darkness (%)", "min": 0, "max": 80, "step": 5, "default": 35 },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color", "label": "Section background", "default": "#FFFFFF" },
+    { "type": "color", "id": "card_bg_color", "label": "Card background", "default": "#F4F4F4" },
+    { "type": "color", "id": "text_color", "label": "Text color", "default": "#1A1A1A" },
+    { "type": "color", "id": "accent_color", "label": "Accent color (arrows, dots, button)", "default": "#1A1A1A" },
+    { "type": "header", "content": "Section spacing" },
+    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 120, "step": 4, "default": 48 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 120, "step": 4, "default": 48 }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Collection" },
+        { "type": "text", "id": "custom_title", "label": "Custom display name", "info": "Leave blank to use the collection's title" },
+        { "type": "image_picker", "id": "custom_image", "label": "Custom image", "info": "Leave blank to use the collection's featured image" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Horizontal Category List",
+      "blocks": [
+        { "type": "category" },
+        { "type": "category" },
+        { "type": "category" },
+        { "type": "category" },
+        { "type": "category" }
+      ]
+    }
+  ]
+}
+{% endschema %}
